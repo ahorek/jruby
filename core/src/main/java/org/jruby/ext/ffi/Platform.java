@@ -315,10 +315,8 @@ public class Platform {
     public static void createPlatformModule(Ruby runtime, RubyModule ffi) {
         RubyModule module = ffi.defineModuleUnder("Platform");
         Platform platform = Platform.getPlatform();
-        OS_TYPE os = platform.getOS();
         module.defineConstant("ADDRESS_SIZE", runtime.newFixnum(platform.addressSize));
         module.defineConstant("LONG_SIZE", runtime.newFixnum(platform.longSize));
-        module.defineConstant("IS_DRAGONFLYBSD", runtime.newBoolean(os == OS.DRAGONFLYBSD));
         module.defineConstant("BYTE_ORDER", runtime.newFixnum(BYTE_ORDER));
         module.defineConstant("BIG_ENDIAN", runtime.newFixnum(BIG_ENDIAN));
         module.defineConstant("LITTLE_ENDIAN", runtime.newFixnum(LITTLE_ENDIAN));
