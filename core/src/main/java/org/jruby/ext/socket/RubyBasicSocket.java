@@ -36,7 +36,6 @@ import jnr.constants.platform.SocketOption;
 import jnr.ffi.LibraryLoader;
 import jnr.ffi.annotations.In;
 import jnr.ffi.annotations.Out;
-import jnr.ffi.byref.IntByReference;
 import jnr.posix.Timeval;
 import jnr.unixsocket.UnixSocketAddress;
 import org.jruby.Ruby;
@@ -69,6 +68,7 @@ import java.net.Inet6Address;
 import java.net.InetSocketAddress;
 import java.net.SocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.nio.ByteOrder;
 import java.nio.channels.Channel;
 import java.nio.channels.DatagramChannel;
@@ -425,15 +425,16 @@ public class RubyBasicSocket extends RubyIO {
                         if (Platform.IS_LINUX && validTcpSockOpt(intOpt) &&
                                 fd.realFileno > 0 && SOCKOPT != null) {
                             ByteBuffer buf = ByteBuffer.allocate(256);
-                            IntByReference len = new IntByReference(4);
-                            
+                            IntBuffer len = IntBuffer.allocate(1);
+                            len.put(256).rewind();
+
                             int ret = SOCKOPT.getsockopt(fd.realFileno, intLevel, intOpt, buf, len);
 
                             if (ret != 0) {
                                 throw runtime.newErrnoEINVALError(SOCKOPT.strerror(ret));
                             }
                             buf.flip();
-                            ByteList bytes = new ByteList(buf.array(), buf.position(), len.getValue());
+                            ByteList bytes = new ByteList(buf.array(), buf.position(), len.get());
 
                             return new Option(runtime, ProtocolFamily.PF_INET, level, opt, bytes);
                         }
@@ -541,7 +542,7 @@ public class RubyBasicSocket extends RubyIO {
         int F_SETFL = Fcntl.F_SETFL.intValue();
         int O_NONBLOCK = jnr.constants.platform.OpenFlags.O_NONBLOCK.intValue();
 
-        int getsockopt(int s, int level, int optname, @Out ByteBuffer optval, @Out IntByReference optlen);
+        int getsockopt(int s, int level, int optname, @Out ByteBuffer optval, @Out IntBuffer optlen);
         int setsockopt(int s, int level, int optname, @In ByteBuffer optval, int optlen);
         int setsockopt(int s, int level, int optname, @In Timeval optval, int optlen);
         String strerror(int error);
