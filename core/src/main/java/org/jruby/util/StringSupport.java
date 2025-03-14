@@ -1700,7 +1700,25 @@ public final class StringSupport {
     }
 
     public static boolean isSingleByteOptimizable(CodeRangeable string, Encoding encoding) {
-        return string.getCodeRange() == CR_7BIT || encoding.maxLength() == 1;
+        if (encoding instanceof ASCIIEncoding || encoding instanceof USASCIIEncoding) {
+            return true;
+        }
+        else if (encoding.isUTF8()) {
+            // For UTF-8 it's worth scanning the string coderange when unknown.
+            return string.scanForCodeRange() == CR_7BIT;
+        }
+        /* Conservative.  It may be ENC_CODERANGE_UNKNOWN. */
+        if (string.getCodeRange() == CR_7BIT) {
+            return true;
+        }
+
+        if (encoding.maxLength() == 1) {
+            return true;
+        }
+
+        /* Conservative.  Possibly single byte.
+         * "\xa1" in Shift_JIS for example. */
+        return false;
     }
 
     /**
@@ -1852,7 +1870,14 @@ public final class StringSupport {
     }
 
     private static boolean isAsciiOnly(Encoding encoding, final int codeRange) {
-        return encoding.isAsciiCompatible() && codeRange == CR_7BIT;
+        switch(codeRange) {
+            case CR_UNKNOWN:
+                return encoding.isAsciiCompatible() && codeRange == CR_7BIT;
+            case CR_7BIT:
+                return true;
+            default:
+                return false;
+         }
     }
 
     /**
