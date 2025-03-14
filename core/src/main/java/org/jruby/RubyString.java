@@ -283,6 +283,12 @@ public class RubyString extends RubyObject implements CharSequence, EncodingCapa
         return StringSupport.isSingleByteOptimizable(this, enc);
     }
 
+    // case_option_single_p 
+    final boolean singleCaseFold(int flags, Encoding encoding) {
+        return (((flags & Config.CASE_ASCII_ONLY) != 0 && (encoding.isUTF8() || encoding.maxLength() == 1)) ||
+          !((flags & Config.CASE_FOLD_TURKISH_AZERI) != 0 && getCodeRange() == CR_7BIT));
+    }
+
     @SuppressWarnings("ReferenceEquality")
     final Encoding isCompatibleWith(EncodingCapable other) {
         if (other instanceof RubyString) return checkEncoding((RubyString)other);
@@ -1926,8 +1932,7 @@ public class RubyString extends RubyObject implements CharSequence, EncodingCapa
     private IRubyObject upcase_bang(ThreadContext context, int flags) {
         modifyAndKeepCodeRange();
         Encoding enc = checkDummyEncoding();
-        if (((flags & Config.CASE_ASCII_ONLY) != 0 && (enc.isUTF8() || enc.maxLength() == 1)) ||
-                (flags & Config.CASE_FOLD_TURKISH_AZERI) == 0 && getCodeRange() == CR_7BIT) {
+        if (singleCaseFold(flags, enc)) {
             int s = value.getBegin();
             int end = s + value.getRealSize();
             byte[]bytes = value.getUnsafeBytes();
@@ -2000,8 +2005,7 @@ public class RubyString extends RubyObject implements CharSequence, EncodingCapa
     private IRubyObject downcase_bang(ThreadContext context, int flags) {
         modifyAndKeepCodeRange();
         Encoding enc = checkDummyEncoding();
-        if (((flags & Config.CASE_ASCII_ONLY) != 0 && (enc.isUTF8() || enc.maxLength() == 1)) ||
-                (flags & Config.CASE_FOLD_TURKISH_AZERI) == 0 && getCodeRange() == CR_7BIT) {
+        if (singleCaseFold(flags, enc)) {
             int s = value.getBegin();
             int end = s + value.getRealSize();
             byte[]bytes = value.getUnsafeBytes();
