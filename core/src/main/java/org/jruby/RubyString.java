@@ -286,7 +286,7 @@ public class RubyString extends RubyObject implements CharSequence, EncodingCapa
     // case_option_single_p 
     final boolean singleCaseFold(int flags, Encoding encoding) {
         return (((flags & Config.CASE_ASCII_ONLY) != 0 && (encoding.isUTF8() || encoding.maxLength() == 1)) ||
-          !((flags & Config.CASE_FOLD_TURKISH_AZERI) != 0 && getCodeRange() == CR_7BIT));
+          ((flags & Config.CASE_FOLD_TURKISH_AZERI) == 0 && getCodeRange() == CR_7BIT));
     }
 
     @SuppressWarnings("ReferenceEquality")
